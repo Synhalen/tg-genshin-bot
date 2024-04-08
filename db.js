@@ -27,6 +27,10 @@ export async function saveCodes(actualCodes) {
     return { code: actualCode };
   });
 
+  if (codesForInsert.length === 0) {
+    throw Error("Tried to save empty codes, parser is probably broken");
+  }
+
   await db.transaction(async (tx) => {
     await tx.delete(schema.oldCodes);
     await tx.insert(schema.oldCodes).values(codesForInsert);
@@ -39,7 +43,7 @@ export async function getChatIds() {
 }
 
 export async function subscribeUserForNewCodes(chatId) {
-  await db.insert(schema.chatIds).ignore().values({ chatId });
+  await db.insert(schema.chatIds).values({ chatId }).onConflictDoNothing();
 }
 
 export async function unsubscribeUserFromNewCodes(chatId) {
