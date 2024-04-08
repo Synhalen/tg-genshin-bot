@@ -1,32 +1,41 @@
 export async function proGameGuides(browser) {
-  const page = await browser.newPage();
-  await page.goto(
-    "https://progameguides.com/genshin-impact/genshin-impact-codes/"
-  );
+  try {
+    const page = await browser.newPage();
+    await page.goto(
+      "https://progameguides.com/genshin-impact/genshin-impact-codes/"
+    );
 
-  const SELECTOR =
-    ".entry-content > ul:first-of-type > li > strong:first-child";
+    const SELECTOR =
+      ".wp-block-gamurs-article-content > ul:first-of-type > li > strong:first-child";
 
-  page.waitForSelector(SELECTOR);
-  const codes = await page.$$eval(SELECTOR, (elements) =>
-    elements.map((element) => element.textContent)
-  );
+    await page.waitForSelector(SELECTOR);
+    const codes = await page.$$eval(SELECTOR, (elements) =>
+      elements.map((element) => element.textContent)
+    );
 
-  return codes;
+    return codes;
+  } catch (e) {
+    console.error(e);
+    throw new Error("Failed to parse progameguides");
+  }
 }
 
 export async function landOfGames(browser) {
-  const page = await browser.newPage();
-  await page.goto(
-    "https://landofgames.ru/articles/guides/9832-promokody-dlya-genshin-impact-kamni-istoka-ochki-priklyucheniy-i-mora.html"
-  );
+  try {
+    const page = await browser.newPage();
+    await page.goto(
+      "https://landofgames.ru/articles/guides/9832-promokody-dlya-genshin-impact-kamni-istoka-ochki-priklyucheniy-i-mora.html"
+    );
 
-  const SELECTOR = "#main_art > ul:nth-child(9) > li";
+    const SELECTOR = "#main_art > ul:nth-of-type(1) > li";
 
-  page.waitForSelector(SELECTOR);
-  const codes = await page.$$eval(SELECTOR, (elements) =>
-    elements.map((element) => element.textContent.split(" ", 1).join(""))
-  );
-
-  return codes;
+    await page.waitForSelector(SELECTOR);
+    const codes = await page.$$eval(SELECTOR, (elements) =>
+      elements.map((element) => element.textContent.split(" ", 1).join(""))
+    );
+    return codes;
+  } catch (e) {
+    console.error(e);
+    throw new Error("Failed to parse landofgames");
+  }
 }
