@@ -1,17 +1,15 @@
 import "dotenv/config";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/planetscale-serverless";
-import { connect } from "@planetscale/database";
+import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client";
 import * as schema from "./schema.js";
 
-const connection = connect({
-  database: process.env.DATABASE_DBNAME,
-  host: process.env.DATABASE_HOST,
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
+const client = createClient({
+  url: process.env.TURSO_CONNECTION_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
-const db = drizzle(connection, {
+const db = drizzle(client, {
   schema: schema,
 });
 
