@@ -90,11 +90,29 @@ async function fetchNewCodes() {
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
   try {
-    let codes = await Promise.all([
+    const results = await Promise.allSettled([
       proGameGuides(browser),
       landOfGames(browser),
     ]);
-    let receivedNewCodes = new Set(codes.flat());
+
+    const successfulResults = results
+      .filter((result) => result.status === "fulfilled")
+      .map((result) => result.value);
+
+    const failedResults = results.filter(
+      (result) => result.status === "rejected"
+    );
+
+    for (const failedResult of failedResults) {
+      console.error("Parser failed:", failedResult.reason);
+    }
+
+    const receivedNewCodes = new Set(successfulResults.flat());
+
+    if (receivedNewCodes.size === 0) {
+      throw new Error("All parsers failed");
+    }
+
     return receivedNewCodes;
   } finally {
     await browser.close();

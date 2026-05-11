@@ -23,16 +23,61 @@ export async function proGameGuides(browser) {
 export async function landOfGames(browser) {
   try {
     const page = await browser.newPage();
+
     await page.goto(
       "https://landofgames.ru/articles/guides/9832-promokody-dlya-genshin-impact-kamni-istoka-ochki-priklyucheniy-i-mora.html"
     );
 
-    const SELECTOR = "#main_art > ul:nth-of-type(1) > li";
+    await page.waitForSelector("#main_art");
 
-    await page.waitForSelector(SELECTOR);
-    const codes = await page.$$eval(SELECTOR, (elements) =>
-      elements.map((element) => element.textContent.split(" ", 1).join(""))
-    );
+    const codes = await page.evaluate(() => {
+      const root = document.querySelector("#main_art");
+      if (!root) {
+        return [];
+      }
+
+      const headings = [...root.querySelectorAll("h2, h3")];
+
+      const startHeading = headings.find((heading) =>
+        heading.textContent.includes("Действующие промокоды")
+      );
+
+      const endHeading = headings.find((heading) =>
+        heading.textContent.includes("Как активировать промокоды")
+      );
+
+      if (!startHeading || !endHeading) {
+        return [];
+      }
+
+      const codePattern = /^[A-Z0-9]{8,20}\b/;
+      const extractedCodes = [];
+
+      let currentNode = startHeading.nextElementSibling;
+
+      while (currentNode && currentNode !== endHeading) {
+        if (currentNode.tagName?.toLowerCase() === "ul") {
+          const items = [...currentNode.querySelectorAll("li")]
+            .map((li) => li.textContent.trim())
+            .map((text) => {
+              const match = text.match(codePattern);
+              return match ? match[0] : null;
+            })
+            .filter(Boolean);
+
+          extractedCodes.push(...items);
+        }
+
+        currentNode = currentNode.nextElementSibling;
+      }
+
+      return [...new Set(extractedCodes)];
+    });
+
+    if (codes.length === 0) {
+      throw new Error("No promo codes found in active section");
+    }
+
     return codes;
   } catch (e) {
     console.error(e);
